@@ -7,14 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import SeatSelection from '@/components/SeatSelection';
 import PaymentForm from '@/components/PaymentForm';
 
 const BookingPage = () => {
   const { routeId } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerDetails, setPassengerDetails] = useState({
     name: '',
     email: '',
@@ -38,18 +36,16 @@ const BookingPage = () => {
     date: '2024-01-15'
   };
 
+  // Default to 1 seat for simplified booking
+  const numberOfSeats = 1;
+
   const steps = [
-    { id: 1, title: 'Select Seats', icon: <User className="h-4 w-4" /> },
-    { id: 2, title: 'Passenger Details', icon: <User className="h-4 w-4" /> },
-    { id: 3, title: 'Payment', icon: <CreditCard className="h-4 w-4" /> }
+    { id: 1, title: 'Passenger Details', icon: <User className="h-4 w-4" /> },
+    { id: 2, title: 'Payment', icon: <CreditCard className="h-4 w-4" /> }
   ];
 
-  const handleSeatSelection = (seats: string[]) => {
-    setSelectedSeats(seats);
-  };
-
   const handleNextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -60,7 +56,7 @@ const BookingPage = () => {
     }
   };
 
-  const totalAmount = selectedSeats.length * route.price;
+  const totalAmount = numberOfSeats * route.price;
   const convenienceFee = Math.round(totalAmount * 0.05);
   const finalAmount = totalAmount + convenienceFee;
 
@@ -120,13 +116,6 @@ const BookingPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {currentStep === 1 && (
-              <SeatSelection 
-                onSeatSelect={handleSeatSelection}
-                selectedSeats={selectedSeats}
-              />
-            )}
-
-            {currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Passenger Details</CardTitle>
@@ -177,7 +166,7 @@ const BookingPage = () => {
               </Card>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <PaymentForm 
                 amount={finalAmount}
                 onPaymentComplete={() => navigate('/booking-confirmation')}
@@ -196,12 +185,11 @@ const BookingPage = () => {
               <Button
                 onClick={handleNextStep}
                 disabled={
-                  (currentStep === 1 && selectedSeats.length === 0) ||
-                  (currentStep === 2 && (!passengerDetails.name || !passengerDetails.email || !passengerDetails.phone)) ||
-                  currentStep === 3
+                  (currentStep === 1 && (!passengerDetails.name || !passengerDetails.email || !passengerDetails.phone)) ||
+                  currentStep === 2
                 }
               >
-                {currentStep === 3 ? 'Pay Now' : 'Next'}
+                {currentStep === 2 ? 'Pay Now' : 'Next'}
               </Button>
             </div>
           </div>
@@ -234,29 +222,18 @@ const BookingPage = () => {
                     <span className="text-gray-600">Bus Type</span>
                     <Badge variant="secondary">{route.busType}</Badge>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Seats</span>
+                    <span className="font-medium">{numberOfSeats} seat</span>
+                  </div>
                 </div>
 
                 <hr />
 
-                {/* Selected Seats */}
-                {selectedSeats.length > 0 && (
-                  <>
-                    <div>
-                      <h4 className="font-medium mb-2">Selected Seats</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {selectedSeats.map(seat => (
-                          <Badge key={seat} variant="outline">{seat}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <hr />
-                  </>
-                )}
-
                 {/* Price Breakdown */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Base Fare ({selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''})</span>
+                    <span>Base Fare ({numberOfSeats} seat)</span>
                     <span>${totalAmount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -273,7 +250,7 @@ const BookingPage = () => {
                 {route.discount > 0 && (
                   <div className="bg-green-50 p-3 rounded-lg">
                     <div className="text-sm text-green-800">
-                      🎉 You saved ${(route.originalPrice - route.price) * selectedSeats.length} with {route.discount}% discount!
+                      🎉 You saved ${(route.originalPrice - route.price) * numberOfSeats} with {route.discount}% discount!
                     </div>
                   </div>
                 )}
