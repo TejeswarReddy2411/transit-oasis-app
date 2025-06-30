@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +53,16 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
     return 'bg-green-100 hover:bg-green-200 cursor-pointer';
   };
 
+  // Group seats by row for proper layout
+  const groupSeatsByRow = () => {
+    const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+    return rows.map(row => 
+      seats.filter(seat => seat.number.startsWith(row))
+    );
+  };
+
+  const seatRows = groupSeatsByRow();
+
   return (
     <Card>
       <CardHeader>
@@ -78,7 +89,7 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
         </div>
 
         {/* Bus Layout */}
-        <div className="bg-gray-100 rounded-lg p-6 max-w-md mx-auto">
+        <div className="bg-gray-100 rounded-lg p-6 max-w-2xl mx-auto">
           {/* Driver Section */}
           <div className="flex items-center justify-center mb-4 pb-4 border-b border-gray-300">
             <div className="flex items-center gap-2 text-gray-600">
@@ -87,25 +98,59 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
             </div>
           </div>
 
-          {/* Seats Grid */}
-          <div className="grid grid-cols-4 gap-2">
-            {seats.map((seat, index) => {
-              // Add aisle space after 2nd column
-              const shouldAddAisle = (index + 1) % 10 === 3;
-              
-              return (
-                <div key={seat.number} className="flex items-center">
-                  <button
-                    onClick={() => handleSeatClick(seat.number)}
-                    className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
-                    disabled={seat.isBooked}
-                  >
-                    {seat.number}
-                  </button>
-                  {shouldAddAisle && <div className="w-4"></div>}
+          {/* Seats Grid - Row by Row */}
+          <div className="space-y-2">
+            {seatRows.map((rowSeats, rowIndex) => (
+              <div key={rowIndex} className="flex items-center justify-center gap-2">
+                {/* Left side seats (2 seats) */}
+                <div className="flex gap-1">
+                  {rowSeats.slice(0, 2).map((seat) => (
+                    <button
+                      key={seat.number}
+                      onClick={() => handleSeatClick(seat.number)}
+                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
+                      disabled={seat.isBooked}
+                    >
+                      {seat.number}
+                    </button>
+                  ))}
                 </div>
-              );
-            })}
+
+                {/* Aisle */}
+                <div className="w-8"></div>
+
+                {/* Middle seats (4 seats) */}
+                <div className="flex gap-1">
+                  {rowSeats.slice(2, 6).map((seat) => (
+                    <button
+                      key={seat.number}
+                      onClick={() => handleSeatClick(seat.number)}
+                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
+                      disabled={seat.isBooked}
+                    >
+                      {seat.number}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Aisle */}
+                <div className="w-8"></div>
+
+                {/* Right side seats (4 seats) */}
+                <div className="flex gap-1">
+                  {rowSeats.slice(6, 10).map((seat) => (
+                    <button
+                      key={seat.number}
+                      onClick={() => handleSeatClick(seat.number)}
+                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
+                      disabled={seat.isBooked}
+                    >
+                      {seat.number}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
