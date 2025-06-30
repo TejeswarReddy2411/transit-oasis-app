@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Steering, User } from 'lucide-react';
+import { Wheel, User } from 'lucide-react';
 
 interface SeatSelectionProps {
   onSeatSelect: (seats: string[]) => void;
@@ -83,7 +83,7 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
           {/* Driver Section */}
           <div className="flex items-center justify-center mb-4 pb-4 border-b border-gray-300">
             <div className="flex items-center gap-2 text-gray-600">
-              <Steering className="h-5 w-5" />
+              <Wheel className="h-5 w-5" />
               <span className="text-sm">Driver</span>
             </div>
           </div>
