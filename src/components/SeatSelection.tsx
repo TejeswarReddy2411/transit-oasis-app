@@ -2,28 +2,32 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Circle, User } from 'lucide-react';
+import { User } from 'lucide-react';
 
 interface SeatSelectionProps {
   onSeatSelect: (seats: string[]) => void;
   selectedSeats: string[];
+  maxSeats?: number;
 }
 
-const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
-  // Mock seat layout (A-F rows, 1-10 columns for a 60-seat bus)
+const SeatSelection = ({ onSeatSelect, selectedSeats, maxSeats = 4 }: SeatSelectionProps) => {
+  // Generate seats for a typical bus layout (10 rows, 10 seats per row)
   const generateSeats = () => {
     const seats = [];
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const rows = 10;
     const seatsPerRow = 10;
     
-    // Some seats are already booked (mock data)
-    const bookedSeats = ['A3', 'B5', 'C1', 'D7', 'E2', 'F8'];
+    // Pre-booked seats (mock data)
+    const bookedSeats = ['1A', '1B', '2C', '3E', '4F', '5H', '6A', '7D', '8G', '9I'];
     
-    for (let row of rows) {
-      for (let col = 1; col <= seatsPerRow; col++) {
-        const seatNumber = `${row}${col}`;
+    for (let row = 1; row <= rows; row++) {
+      for (let col = 0; col < seatsPerRow; col++) {
+        const seatLetter = String.fromCharCode(65 + col); // A, B, C, D, E, F, G, H, I, J
+        const seatNumber = `${row}${seatLetter}`;
         seats.push({
-          number: seatNumber,
+          id: seatNumber,
+          row: row,
+          position: col,
           isBooked: bookedSeats.includes(seatNumber),
           isSelected: selectedSeats.includes(seatNumber)
         });
@@ -34,123 +38,143 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
 
   const seats = generateSeats();
 
-  const handleSeatClick = (seatNumber: string) => {
-    const seat = seats.find(s => s.number === seatNumber);
+  const handleSeatClick = (seatId: string) => {
+    const seat = seats.find(s => s.id === seatId);
     if (seat?.isBooked) return;
 
     let newSelectedSeats;
-    if (selectedSeats.includes(seatNumber)) {
-      newSelectedSeats = selectedSeats.filter(s => s !== seatNumber);
+    if (selectedSeats.includes(seatId)) {
+      // Deselect seat
+      newSelectedSeats = selectedSeats.filter(s => s !== seatId);
     } else {
-      newSelectedSeats = [...selectedSeats, seatNumber];
+      // Select seat (check max limit)
+      if (selectedSeats.length >= maxSeats) {
+        return; // Don't allow more than max seats
+      }
+      newSelectedSeats = [...selectedSeats, seatId];
     }
     onSeatSelect(newSelectedSeats);
   };
 
-  const getSeatColor = (seat: any) => {
-    if (seat.isBooked) return 'bg-gray-300 cursor-not-allowed';
-    if (seat.isSelected) return 'bg-blue-600 text-white';
-    return 'bg-green-100 hover:bg-green-200 cursor-pointer';
+  const getSeatStyle = (seat: any) => {
+    if (seat.isBooked) {
+      return 'bg-red-200 text-red-800 cursor-not-allowed border-red-300';
+    }
+    if (seat.isSelected) {
+      return 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700';
+    }
+    return 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200 cursor-pointer';
   };
 
-  // Group seats by row for proper layout
-  const groupSeatsByRow = () => {
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F'];
-    return rows.map(row => 
-      seats.filter(seat => seat.number.startsWith(row))
-    );
-  };
-
-  const seatRows = groupSeatsByRow();
+  // Group seats by row for rendering
+  const seatsByRow = seats.reduce((acc, seat) => {
+    if (!acc[seat.row]) {
+      acc[seat.row] = [];
+    }
+    acc[seat.row].push(seat);
+    return acc;
+  }, {} as Record<number, typeof seats>);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          Select Your Seats
+          Select Your Seats ({selectedSeats.length}/{maxSeats} selected)
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Legend */}
-        <div className="flex items-center gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-center gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-green-100 border rounded"></div>
+            <div className="w-6 h-6 bg-green-100 border border-green-300 rounded"></div>
             <span className="text-sm">Available</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-blue-600 border rounded"></div>
-            <span className="text-sm">Selected</span>
+            <div className="w-6 h-6 bg-blue-600 border border-blue-600 rounded"></div>
+            <span className="text-sm text-white">Selected</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-300 border rounded"></div>
+            <div className="w-6 h-6 bg-red-200 border border-red-300 rounded"></div>
             <span className="text-sm">Booked</span>
           </div>
         </div>
 
         {/* Bus Layout */}
-        <div className="bg-gray-100 rounded-lg p-6 max-w-2xl mx-auto">
+        <div className="bg-gray-100 rounded-lg p-6 max-w-md mx-auto">
           {/* Driver Section */}
           <div className="flex items-center justify-center mb-4 pb-4 border-b border-gray-300">
-            <div className="flex items-center gap-2 text-gray-600">
-              <Circle className="h-5 w-5" />
-              <span className="text-sm">Driver</span>
+            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs">🚗</span>
             </div>
+            <span className="ml-2 text-sm text-gray-600">Driver</span>
           </div>
 
-          {/* Seats Grid - Row by Row */}
+          {/* Seats Grid */}
           <div className="space-y-2">
-            {seatRows.map((rowSeats, rowIndex) => (
-              <div key={rowIndex} className="flex items-center justify-center gap-2">
-                {/* Left side seats (2 seats) */}
-                <div className="flex gap-1">
-                  {rowSeats.slice(0, 2).map((seat) => (
-                    <button
-                      key={seat.number}
-                      onClick={() => handleSeatClick(seat.number)}
-                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
-                      disabled={seat.isBooked}
-                    >
-                      {seat.number}
-                    </button>
-                  ))}
-                </div>
+            {Object.keys(seatsByRow)
+              .sort((a, b) => parseInt(a) - parseInt(b))
+              .map(rowNum => {
+                const rowSeats = seatsByRow[parseInt(rowNum)];
+                return (
+                  <div key={rowNum} className="flex items-center justify-center gap-1">
+                    {/* Left side seats (A, B) */}
+                    <div className="flex gap-1">
+                      {rowSeats.slice(0, 2).map((seat) => (
+                        <button
+                          key={seat.id}
+                          onClick={() => handleSeatClick(seat.id)}
+                          className={`w-8 h-8 rounded text-xs font-medium border transition-all duration-200 ${getSeatStyle(seat)}`}
+                          disabled={seat.isBooked}
+                          title={`Seat ${seat.id} - ${seat.isBooked ? 'Booked' : seat.isSelected ? 'Selected' : 'Available'}`}
+                        >
+                          {seat.id}
+                        </button>
+                      ))}
+                    </div>
 
-                {/* Aisle */}
-                <div className="w-8"></div>
+                    {/* Aisle */}
+                    <div className="w-6 flex justify-center">
+                      <div className="w-px h-6 bg-gray-300"></div>
+                    </div>
 
-                {/* Middle seats (4 seats) */}
-                <div className="flex gap-1">
-                  {rowSeats.slice(2, 6).map((seat) => (
-                    <button
-                      key={seat.number}
-                      onClick={() => handleSeatClick(seat.number)}
-                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
-                      disabled={seat.isBooked}
-                    >
-                      {seat.number}
-                    </button>
-                  ))}
-                </div>
+                    {/* Middle seats (C, D, E, F) */}
+                    <div className="flex gap-1">
+                      {rowSeats.slice(2, 6).map((seat) => (
+                        <button
+                          key={seat.id}
+                          onClick={() => handleSeatClick(seat.id)}
+                          className={`w-8 h-8 rounded text-xs font-medium border transition-all duration-200 ${getSeatStyle(seat)}`}
+                          disabled={seat.isBooked}
+                          title={`Seat ${seat.id} - ${seat.isBooked ? 'Booked' : seat.isSelected ? 'Selected' : 'Available'}`}
+                        >
+                          {seat.id}
+                        </button>
+                      ))}
+                    </div>
 
-                {/* Aisle */}
-                <div className="w-8"></div>
+                    {/* Aisle */}
+                    <div className="w-6 flex justify-center">
+                      <div className="w-px h-6 bg-gray-300"></div>
+                    </div>
 
-                {/* Right side seats (4 seats) */}
-                <div className="flex gap-1">
-                  {rowSeats.slice(6, 10).map((seat) => (
-                    <button
-                      key={seat.number}
-                      onClick={() => handleSeatClick(seat.number)}
-                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${getSeatColor(seat)}`}
-                      disabled={seat.isBooked}
-                    >
-                      {seat.number}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+                    {/* Right side seats (G, H, I, J) */}
+                    <div className="flex gap-1">
+                      {rowSeats.slice(6, 10).map((seat) => (
+                        <button
+                          key={seat.id}
+                          onClick={() => handleSeatClick(seat.id)}
+                          className={`w-8 h-8 rounded text-xs font-medium border transition-all duration-200 ${getSeatStyle(seat)}`}
+                          disabled={seat.isBooked}
+                          title={`Seat ${seat.id} - ${seat.isBooked ? 'Booked' : seat.isSelected ? 'Selected' : 'Available'}`}
+                        >
+                          {seat.id}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         </div>
 
@@ -166,7 +190,15 @@ const SeatSelection = ({ onSeatSelect, selectedSeats }: SeatSelectionProps) => {
               ))}
             </div>
             <p className="text-sm text-blue-700 mt-2">
-              Total: {selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''} selected
+              {maxSeats - selectedSeats.length} more seat{maxSeats - selectedSeats.length !== 1 ? 's' : ''} can be selected
+            </p>
+          </div>
+        )}
+
+        {selectedSeats.length === 0 && (
+          <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <p className="text-sm text-yellow-800">
+              Please select at least one seat to continue with your booking.
             </p>
           </div>
         )}

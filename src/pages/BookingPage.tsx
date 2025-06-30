@@ -1,18 +1,20 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, CreditCard, Shield, Clock } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, Shield, Clock, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import PaymentForm from '@/components/PaymentForm';
+import SeatSelection from '@/components/SeatSelection';
 
 const BookingPage = () => {
   const { routeId } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerDetails, setPassengerDetails] = useState({
     name: '',
     email: '',
@@ -36,16 +38,14 @@ const BookingPage = () => {
     date: '2024-01-15'
   };
 
-  // Default to 1 seat for simplified booking
-  const numberOfSeats = 1;
-
   const steps = [
-    { id: 1, title: 'Passenger Details', icon: <User className="h-4 w-4" /> },
-    { id: 2, title: 'Payment', icon: <CreditCard className="h-4 w-4" /> }
+    { id: 1, title: 'Select Seats', icon: <MapPin className="h-4 w-4" /> },
+    { id: 2, title: 'Passenger Details', icon: <User className="h-4 w-4" /> },
+    { id: 3, title: 'Payment', icon: <CreditCard className="h-4 w-4" /> }
   ];
 
   const handleNextStep = () => {
-    if (currentStep < 2) {
+    if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -56,9 +56,19 @@ const BookingPage = () => {
     }
   };
 
-  const totalAmount = numberOfSeats * route.price;
+  const handleSeatSelect = (seats: string[]) => {
+    setSelectedSeats(seats);
+  };
+
+  const totalAmount = selectedSeats.length * route.price;
   const convenienceFee = Math.round(totalAmount * 0.05);
   const finalAmount = totalAmount + convenienceFee;
+
+  const canProceedToNext = () => {
+    if (currentStep === 1) return selectedSeats.length > 0;
+    if (currentStep === 2) return passengerDetails.name && passengerDetails.email && passengerDetails.phone && passengerDetails.age;
+    return false;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -101,7 +111,7 @@ const BookingPage = () => {
                   {step.title}
                 </span>
                 {index < steps.length - 1 && (
-                  <div className={`w-12 h-px ${
+                  <div className={`w-12 h-px ml-4 ${
                     currentStep > step.id ? 'bg-blue-600' : 'bg-gray-200'
                   }`} />
                 )}
@@ -116,6 +126,14 @@ const BookingPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {currentStep === 1 && (
+              <SeatSelection
+                onSeatSelect={handleSeatSelect}
+                selectedSeats={selectedSeats}
+                maxSeats={4}
+              />
+            )}
+
+            {currentStep === 2 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Passenger Details</CardTitle>
@@ -166,7 +184,7 @@ const BookingPage = () => {
               </Card>
             )}
 
-            {currentStep === 2 && (
+            {currentStep === 3 && (
               <PaymentForm 
                 amount={finalAmount}
                 onPaymentComplete={() => navigate('/booking-confirmation')}
@@ -184,12 +202,9 @@ const BookingPage = () => {
               </Button>
               <Button
                 onClick={handleNextStep}
-                disabled={
-                  (currentStep === 1 && (!passengerDetails.name || !passengerDetails.email || !passengerDetails.phone)) ||
-                  currentStep === 2
-                }
+                disabled={!canProceedToNext() || currentStep === 3}
               >
-                {currentStep === 2 ? 'Pay Now' : 'Next'}
+                {currentStep === 3 ? 'Pay Now' : 'Next'}
               </Button>
             </div>
           </div>
@@ -224,33 +239,57 @@ const BookingPage = () => {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Seats</span>
-                    <span className="font-medium">{numberOfSeats} seat</span>
+                    <span className="font-medium">
+                      {selectedSeats.length > 0 ? `${selectedSeats.length} seat${selectedSeats.length > 1 ? 's' : ''}` : 'No seats selected'}
+                    </span>
                   </div>
+                  {selectedSeats.length > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Seat Numbers</span>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedSeats.map(seat => (
+                          <Badge key={seat} variant="outline" className="text-xs">
+                            {seat}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <hr />
 
                 {/* Price Breakdown */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Base Fare ({numberOfSeats} seat)</span>
-                    <span>${totalAmount}</span>
+                {selectedSeats.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Base Fare ({selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''})</span>
+                      <span>${totalAmount}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Convenience Fee</span>
+                      <span>${convenienceFee}</span>
+                    </div>
+                    <hr />
+                    <div className="flex justify-between font-semibold">
+                      <span>Total Amount</span>
+                      <span>${finalAmount}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Convenience Fee</span>
-                    <span>${convenienceFee}</span>
-                  </div>
-                  <hr />
-                  <div className="flex justify-between font-semibold">
-                    <span>Total Amount</span>
-                    <span>${finalAmount}</span>
-                  </div>
-                </div>
+                )}
 
-                {route.discount > 0 && (
+                {route.discount > 0 && selectedSeats.length > 0 && (
                   <div className="bg-green-50 p-3 rounded-lg">
                     <div className="text-sm text-green-800">
-                      🎉 You saved ${(route.originalPrice - route.price) * numberOfSeats} with {route.discount}% discount!
+                      🎉 You saved ${(route.originalPrice - route.price) * selectedSeats.length} with {route.discount}% discount!
+                    </div>
+                  </div>
+                )}
+
+                {selectedSeats.length === 0 && (
+                  <div className="bg-yellow-50 p-3 rounded-lg">
+                    <div className="text-sm text-yellow-800">
+                      Please select seats to see pricing details
                     </div>
                   </div>
                 )}
