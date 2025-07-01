@@ -22,20 +22,20 @@ const BookingPage = () => {
     age: ''
   });
 
-  // Mock route data (in real app, fetch from API)
+  // Mock route data with Indian cities and operators
   const route = {
     id: routeId,
-    operatorName: 'Elite Express',
-    from: 'New York',
-    to: 'Washington DC',
+    operatorName: 'Orange Tours & Travels',
+    from: 'Mumbai',
+    to: 'Pune',
     departureTime: '06:00',
-    arrivalTime: '10:30',
-    duration: '4h 30m',
+    arrivalTime: '09:30',
+    duration: '3h 30m',
     busType: 'AC Sleeper',
-    price: 75,
-    originalPrice: 85,
-    discount: 12,
-    date: '2024-01-15'
+    price: 450,
+    originalPrice: 500,
+    discount: 10,
+    date: new Date().toLocaleDateString('en-IN')
   };
 
   const steps = [
@@ -175,7 +175,7 @@ const BookingPage = () => {
                     <Input
                       id="phone"
                       type="tel"
-                      placeholder="Enter phone number"
+                      placeholder="Enter 10-digit mobile number"
                       value={passengerDetails.phone}
                       onChange={(e) => setPassengerDetails(prev => ({ ...prev, phone: e.target.value }))}
                     />
@@ -264,16 +264,16 @@ const BookingPage = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Base Fare ({selectedSeats.length} seat{selectedSeats.length > 1 ? 's' : ''})</span>
-                      <span>${totalAmount}</span>
+                      <span>₹{totalAmount}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Convenience Fee</span>
-                      <span>${convenienceFee}</span>
+                      <span>₹{convenienceFee}</span>
                     </div>
                     <hr />
                     <div className="flex justify-between font-semibold">
                       <span>Total Amount</span>
-                      <span>${finalAmount}</span>
+                      <span>₹{finalAmount}</span>
                     </div>
                   </div>
                 )}
@@ -281,7 +281,7 @@ const BookingPage = () => {
                 {route.discount > 0 && selectedSeats.length > 0 && (
                   <div className="bg-green-50 p-3 rounded-lg">
                     <div className="text-sm text-green-800">
-                      🎉 You saved ${(route.originalPrice - route.price) * selectedSeats.length} with {route.discount}% discount!
+                      🎉 You saved ₹{(route.originalPrice - route.price) * selectedSeats.length} with {route.discount}% discount!
                     </div>
                   </div>
                 )}

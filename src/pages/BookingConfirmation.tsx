@@ -6,15 +6,15 @@ import { Badge } from '@/components/ui/badge';
 
 const BookingConfirmation = () => {
   const bookingDetails = {
-    bookingId: 'BG12345678',
-    route: 'New York → Washington DC',
-    date: '2024-01-15',
-    time: '06:00 - 10:30',
-    operator: 'Elite Express',
+    bookingId: 'OT12345678',
+    route: 'Mumbai → Pune',
+    date: new Date().toLocaleDateString('en-IN'),
+    time: '06:00 - 09:30',
+    operator: 'Orange Tours & Travels',
     busType: 'AC Sleeper',
     seats: ['A5', 'A6'],
-    passengerName: 'John Doe',
-    totalAmount: 157,
+    passengerName: 'Rajesh Kumar',
+    totalAmount: 945,
     status: 'Confirmed'
   };
 
@@ -88,7 +88,7 @@ const BookingConfirmation = () => {
                   <div>
                     <span className="text-sm text-gray-600">Total Amount</span>
                     <div className="font-bold text-lg text-green-600">
-                      ${bookingDetails.totalAmount}
+                      ₹{bookingDetails.totalAmount}
                     </div>
                   </div>
                 </div>
@@ -104,10 +104,11 @@ const BookingConfirmation = () => {
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li>• Please reach the boarding point 15 minutes before departure time</li>
-                <li>• Carry a valid government ID for verification</li>
-                <li>• Your ticket has been sent to your email address</li>
+                <li>• Carry a valid government ID (Aadhar Card/PAN Card/Driving License) for verification</li>
+                <li>• Your ticket has been sent to your registered email address and mobile number</li>
                 <li>• For any changes or cancellation, contact customer support</li>
                 <li>• Refund will be processed according to our cancellation policy</li>
+                <li>• Face mask is recommended while traveling</li>
               </ul>
             </CardContent>
           </Card>

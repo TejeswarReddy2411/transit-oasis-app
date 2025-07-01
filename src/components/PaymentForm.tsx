@@ -14,28 +14,31 @@ interface PaymentFormProps {
 }
 
 const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('upi');
   const [cardDetails, setCardDetails] = useState({
     number: '',
     expiry: '',
     cvv: '',
     name: ''
   });
+  const [upiId, setUpiId] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
   const handleApplyPromo = () => {
-    // Mock promo code validation
-    if (promoCode === 'SAVE10') {
+    // Mock promo code validation with Indian offers
+    if (promoCode === 'SAVE50') {
+      setDiscount(50);
+    } else if (promoCode === 'FIRSTRIDE') {
+      setDiscount(Math.min(100, amount * 0.2));
+    } else if (promoCode === 'STUDENT10') {
       setDiscount(amount * 0.1);
-    } else if (promoCode === 'FIRST20') {
-      setDiscount(Math.min(20, amount * 0.2));
     } else {
       setDiscount(0);
     }
   };
 
-  const finalAmount = amount - discount;
+  const finalAmount = Math.max(0, amount - discount);
 
   const handlePayment = () => {
     // Mock payment processing
@@ -67,12 +70,13 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
           </div>
           {discount > 0 && (
             <div className="mt-2 p-2 bg-green-50 rounded text-sm text-green-800">
-              🎉 Promo applied! You saved ${discount.toFixed(2)}
+              🎉 Promo applied! You saved ₹{discount}
             </div>
           )}
           <div className="mt-3 space-y-1">
-            <Badge variant="outline" className="mr-2">SAVE10 - 10% off</Badge>
-            <Badge variant="outline">FIRST20 - $20 off first booking</Badge>
+            <Badge variant="outline" className="mr-2">SAVE50 - ₹50 off</Badge>
+            <Badge variant="outline" className="mr-2">FIRSTRIDE - 20% off first booking</Badge>
+            <Badge variant="outline">STUDENT10 - 10% off</Badge>
           </div>
         </CardContent>
       </Card>
@@ -88,18 +92,34 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
         <CardContent>
           <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
             <div className="flex items-center space-x-2">
+              <RadioGroupItem value="upi" id="upi" />
+              <Label htmlFor="upi">UPI (Recommended)</Label>
+            </div>
+            <div className="flex items-center space-x-2">
               <RadioGroupItem value="card" id="card" />
               <Label htmlFor="card">Credit/Debit Card</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="upi" id="upi" />
-              <Label htmlFor="upi">UPI</Label>
+              <RadioGroupItem value="netbanking" id="netbanking" />
+              <Label htmlFor="netbanking">Net Banking</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="wallet" id="wallet" />
               <Label htmlFor="wallet">Digital Wallet</Label>
             </div>
           </RadioGroup>
+
+          {paymentMethod === 'upi' && (
+            <div className="mt-4">
+              <Label htmlFor="upiId">UPI ID</Label>
+              <Input
+                id="upiId"
+                placeholder="yourname@paytm / yourname@phonepe"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+              />
+            </div>
+          )}
 
           {paymentMethod === 'card' && (
             <div className="mt-4 space-y-4">
@@ -116,7 +136,7 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
                 <Label htmlFor="cardName">Cardholder Name</Label>
                 <Input
                   id="cardName"
-                  placeholder="John Doe"
+                  placeholder="Name as on card"
                   value={cardDetails.name}
                   onChange={(e) => setCardDetails(prev => ({ ...prev, name: e.target.value }))}
                 />
@@ -144,26 +164,36 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
             </div>
           )}
 
-          {paymentMethod === 'upi' && (
-            <div className="mt-4">
-              <Label htmlFor="upiId">UPI ID</Label>
-              <Input
-                id="upiId"
-                placeholder="yourname@upi"
-              />
+          {paymentMethod === 'netbanking' && (
+            <div className="mt-4 space-y-2">
+              <Button variant="outline" className="w-full justify-start">
+                SBI Net Banking
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                HDFC Bank
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                ICICI Bank
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Other Banks
+              </Button>
             </div>
           )}
 
           {paymentMethod === 'wallet' && (
             <div className="mt-4 space-y-2">
               <Button variant="outline" className="w-full justify-start">
-                PayPal
+                Paytm Wallet
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                PhonePe
               </Button>
               <Button variant="outline" className="w-full justify-start">
                 Google Pay
               </Button>
               <Button variant="outline" className="w-full justify-start">
-                Apple Pay
+                Amazon Pay
               </Button>
             </div>
           )}
@@ -176,18 +206,18 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
           <div className="space-y-2 mb-4">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span>${amount}</span>
+              <span>₹{amount}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span>Discount</span>
-                <span>-${discount.toFixed(2)}</span>
+                <span>-₹{discount}</span>
               </div>
             )}
             <hr />
             <div className="flex justify-between font-semibold text-lg">
               <span>Total</span>
-              <span>${finalAmount.toFixed(2)}</span>
+              <span>₹{finalAmount}</span>
             </div>
           </div>
 
@@ -197,7 +227,7 @@ const PaymentForm = ({ amount, onPaymentComplete }: PaymentFormProps) => {
             size="lg"
           >
             <Lock className="h-4 w-4 mr-2" />
-            Pay ${finalAmount.toFixed(2)} Securely
+            Pay ₹{finalAmount} Securely
           </Button>
 
           <p className="text-xs text-gray-500 text-center mt-3">

@@ -11,8 +11,8 @@ interface SearchFormProps {
 
 const SearchForm = ({ onSearch }: SearchFormProps) => {
   const [searchData, setSearchData] = useState({
-    from: 'New York',
-    to: 'Washington DC',
+    from: 'Mumbai',
+    to: 'Pune',
     date: new Date().toISOString().split('T')[0],
     passengers: 1
   });
