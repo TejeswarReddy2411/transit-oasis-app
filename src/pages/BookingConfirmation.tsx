@@ -3,6 +3,7 @@ import { CheckCircle, Download, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/use-toast';
 
 const BookingConfirmation = () => {
   const bookingDetails = {
@@ -16,6 +17,117 @@ const BookingConfirmation = () => {
     passengerName: 'Rajesh Kumar',
     totalAmount: 945,
     status: 'Confirmed'
+  };
+
+  const handleDownloadTicket = () => {
+    // Create ticket content
+    const ticketContent = `
+ORANGE TOURS & TRAVELS
+Bus Ticket Confirmation
+
+Booking ID: ${bookingDetails.bookingId}
+Route: ${bookingDetails.route}
+Date: ${bookingDetails.date}
+Time: ${bookingDetails.time}
+Bus Type: ${bookingDetails.busType}
+Seats: ${bookingDetails.seats.join(', ')}
+Passenger: ${bookingDetails.passengerName}
+Total Amount: ₹${bookingDetails.totalAmount}
+Status: ${bookingDetails.status}
+
+Important Instructions:
+• Please reach the boarding point 15 minutes before departure
+• Carry a valid government ID for verification
+• Face mask is recommended while traveling
+
+Contact: +91 98765 43210
+Email: support@orangetours.com
+    `;
+
+    // Create and download file
+    const blob = new Blob([ticketContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Ticket_${bookingDetails.bookingId}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Ticket Downloaded",
+      description: "Your ticket has been downloaded successfully",
+    });
+  };
+
+  const handleEmailTicket = () => {
+    const subject = `Bus Ticket - ${bookingDetails.bookingId}`;
+    const body = `Dear ${bookingDetails.passengerName},
+
+Your bus ticket has been confirmed. Here are your booking details:
+
+Booking ID: ${bookingDetails.bookingId}
+Route: ${bookingDetails.route}
+Date: ${bookingDetails.date}
+Time: ${bookingDetails.time}
+Bus Type: ${bookingDetails.busType}
+Seats: ${bookingDetails.seats.join(', ')}
+Total Amount: ₹${bookingDetails.totalAmount}
+
+Important Instructions:
+• Please reach the boarding point 15 minutes before departure
+• Carry a valid government ID for verification
+• Face mask is recommended while traveling
+
+For any queries, contact us at +91 98765 43210
+
+Thank you for choosing Orange Tours & Travels!
+
+Best regards,
+Orange Tours & Travels Team`;
+
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(mailtoLink, '_blank');
+
+    toast({
+      title: "Email Client Opened",
+      description: "Your email client has been opened with the ticket details",
+    });
+  };
+
+  const handleContactSupport = () => {
+    const phoneNumber = '+919876543210';
+    const message = `Hi, I need help with my booking ${bookingDetails.bookingId}. Route: ${bookingDetails.route} on ${bookingDetails.date}`;
+    
+    // Try WhatsApp first, then fallback to phone
+    const whatsappUrl = `https://wa.me/${phoneNumber.replace('+', '')}?text=${encodeURIComponent(message)}`;
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (isMobile) {
+      window.open(whatsappUrl, '_blank');
+    } else {
+      // For desktop, show contact options
+      const contactText = `
+Contact Support:
+Phone: ${phoneNumber}
+WhatsApp: Click to open WhatsApp Web
+Email: support@orangetours.com
+
+Booking ID: ${bookingDetails.bookingId}
+      `;
+      
+      if (confirm(contactText + '\n\nClick OK to open WhatsApp Web or Cancel to copy phone number')) {
+        window.open(whatsappUrl, '_blank');
+      } else {
+        navigator.clipboard.writeText(phoneNumber);
+        toast({
+          title: "Phone Number Copied",
+          description: "Support phone number has been copied to clipboard",
+        });
+      }
+    }
   };
 
   return (
@@ -115,15 +227,27 @@ const BookingConfirmation = () => {
 
           {/* Action Buttons */}
           <div className="grid md:grid-cols-3 gap-4 mb-8">
-            <Button className="flex items-center gap-2" variant="outline">
+            <Button 
+              className="flex items-center gap-2" 
+              variant="outline"
+              onClick={handleDownloadTicket}
+            >
               <Download className="h-4 w-4" />
               Download Ticket
             </Button>
-            <Button className="flex items-center gap-2" variant="outline">
+            <Button 
+              className="flex items-center gap-2" 
+              variant="outline"
+              onClick={handleEmailTicket}
+            >
               <Mail className="h-4 w-4" />
               Email Ticket
             </Button>
-            <Button className="flex items-center gap-2" variant="outline">
+            <Button 
+              className="flex items-center gap-2" 
+              variant="outline"
+              onClick={handleContactSupport}
+            >
               <Phone className="h-4 w-4" />
               Contact Support
             </Button>
