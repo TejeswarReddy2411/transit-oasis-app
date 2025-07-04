@@ -9,6 +9,206 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          booking_reference: string
+          booking_status: string | null
+          created_at: string | null
+          id: string
+          match_id: string | null
+          payment_status: string | null
+          quantity: number
+          ticket_category_id: string | null
+          total_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          booking_reference: string
+          booking_status?: string | null
+          created_at?: string | null
+          id?: string
+          match_id?: string | null
+          payment_status?: string | null
+          quantity?: number
+          ticket_category_id?: string | null
+          total_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          booking_reference?: string
+          booking_status?: string | null
+          created_at?: string | null
+          id?: string
+          match_id?: string | null
+          payment_status?: string | null
+          quantity?: number
+          ticket_category_id?: string | null
+          total_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_ticket_category_id_fkey"
+            columns: ["ticket_category_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          base_price: number
+          created_at: string | null
+          id: string
+          match_date: string
+          match_type: string
+          status: Database["public"]["Enums"]["match_status"] | null
+          team1_id: string
+          team2_id: string
+          venue_id: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string | null
+          id?: string
+          match_date: string
+          match_type?: string
+          status?: Database["public"]["Enums"]["match_status"] | null
+          team1_id: string
+          team2_id: string
+          venue_id: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string | null
+          id?: string
+          match_date?: string
+          match_type?: string
+          status?: Database["public"]["Enums"]["match_status"] | null
+          team1_id?: string
+          team2_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_team1_id_fkey"
+            columns: ["team1_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_team2_id_fkey"
+            columns: ["team2_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchandise: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          name: string
+          price: number
+          sizes: string[] | null
+          stock_quantity: number | null
+          team_id: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          price: number
+          sizes?: string[] | null
+          stock_quantity?: number | null
+          team_id?: string | null
+          type?: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          price?: number
+          sizes?: string[] | null
+          stock_quantity?: number | null
+          team_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchandise_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchandise_orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          merchandise_id: string | null
+          order_status: string | null
+          quantity: number
+          size: string
+          total_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          merchandise_id?: string | null
+          order_status?: string | null
+          quantity: number
+          size: string
+          total_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          merchandise_id?: string | null
+          order_status?: string | null
+          quantity?: number
+          size?: string
+          total_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchandise_orders_merchandise_id_fkey"
+            columns: ["merchandise_id"]
+            isOneToOne: false
+            referencedRelation: "merchandise"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       predictions: {
         Row: {
           created_at: string | null
@@ -54,6 +254,113 @@ export type Database = {
         }
         Relationships: []
       }
+      teams: {
+        Row: {
+          city: string
+          created_at: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          primary_color: string | null
+          secondary_color: string | null
+          short_name: string
+        }
+        Insert: {
+          city: string
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name: string
+        }
+        Update: {
+          city?: string
+          created_at?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
+          short_name?: string
+        }
+        Relationships: []
+      }
+      ticket_categories: {
+        Row: {
+          available_seats: number
+          category_name: string
+          created_at: string | null
+          id: string
+          match_id: string | null
+          price: number
+          section_name: string | null
+          ticket_type: Database["public"]["Enums"]["ticket_type"]
+          total_seats: number
+        }
+        Insert: {
+          available_seats: number
+          category_name: string
+          created_at?: string | null
+          id?: string
+          match_id?: string | null
+          price: number
+          section_name?: string | null
+          ticket_type: Database["public"]["Enums"]["ticket_type"]
+          total_seats: number
+        }
+        Update: {
+          available_seats?: number
+          category_name?: string
+          created_at?: string | null
+          id?: string
+          match_id?: string | null
+          price?: number
+          section_name?: string | null
+          ticket_type?: Database["public"]["Enums"]["ticket_type"]
+          total_seats?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_categories_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      venues: {
+        Row: {
+          address: string | null
+          capacity: number
+          city: string
+          created_at: string | null
+          id: string
+          name: string
+          state: string
+        }
+        Insert: {
+          address?: string | null
+          capacity: number
+          city: string
+          created_at?: string | null
+          id?: string
+          name: string
+          state: string
+        }
+        Update: {
+          address?: string | null
+          capacity?: number
+          city?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          state?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -62,7 +369,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      match_status: "upcoming" | "live" | "completed" | "cancelled"
+      ticket_type: "general" | "premium" | "vip" | "hospitality"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -177,6 +485,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      match_status: ["upcoming", "live", "completed", "cancelled"],
+      ticket_type: ["general", "premium", "vip", "hospitality"],
+    },
   },
 } as const
