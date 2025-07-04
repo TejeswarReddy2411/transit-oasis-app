@@ -26,9 +26,9 @@ const MatchBooking = () => {
         .from('matches')
         .select(`
           *,
-          team1:team1_id(name, short_name, primary_color),
-          team2:team2_id(name, short_name, primary_color),
-          venue:venue_id(name, city, state, capacity)
+          team1:teams!matches_team1_id_fkey(name, short_name, primary_color),
+          team2:teams!matches_team2_id_fkey(name, short_name, primary_color),
+          venue:venues!matches_venue_id_fkey(name, city, state, capacity)
         `)
         .eq('id', matchId)
         .single();
